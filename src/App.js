@@ -1,26 +1,59 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
 
-function App() {
+// Componente: Bloco isolado de HTML, CSS e JS que não interfere no restante...
+// Propriedade: Informaçãoes que um componente PAI passa para o componente FILHO...
+// Estado: Informações mantidas pelo componente ( Imutável )...
+
+import './global.css';
+import './App.css';
+import './Main.css';
+import './Sidebar.css';
+import api from './services/api';
+
+import DevItem from './components/DevItem';
+import DevForm from './components/DevForm';
+
+export default function App() {
+  const [ devs, setDevs ] = useState([]);
+
+  useEffect(() => {
+    async function getDevs() {
+      const response = await api.get('/devs');
+
+      setDevs( response.data );
+    };
+
+    getDevs();
+  }, []);
+
+  async function handleAddDev( data ) {
+    const response = await api.post('/devs', data);
+    
+    setDevs([ ...devs, response.data ]);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <aside>
+        <strong>Cadastrar</strong>
+
+        <DevForm onSubmit={ handleAddDev }/>
+      </aside>
+
+      <main>
+        <ul>
+          {
+            devs.length !== 0 ? devs.map( dev => (
+              <DevItem
+                key={ dev._id}
+                data={ dev }
+              />
+            )) : (
+              <h1 className="empty">Nenhum dev encontrado!</h1>
+            )
+          }
+        </ul>
+      </main>
     </div>
   );
-}
-
-export default App;
+};
